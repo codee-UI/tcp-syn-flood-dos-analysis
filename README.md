@@ -556,8 +556,363 @@ The IP addresses, organization, network traffic, and attack activity used in thi
 
 `cybersecurity` `wireshark` `network-security` `tcp` `syn-flood` `dos-attack` `packet-analysis` `incident-response` `network-analysis` `https`
 
+
+
+
+
+
 ---
 
 ## Keywords
 
 `Cybersecurity` `Network Security` `Wireshark` `TCP` `SYN Flood` `DoS` `Denial of Service` `Packet Analysis` `Incident Response` `HTTPS` `Port 443` `Firewall` `IDS` `IPS` `Network Traffic Analysis`
+
+# Interception Tactics — Packet Sniffing, IP Spoofing, On-Path and Smurf Attacks
+
+## Packet Sniffing
+
+**Packet sniffing** is the practice of capturing and inspecting data packets as they travel across a network.
+
+On a private network, packets are normally delivered to the intended destination device. Each device contains a **Network Interface Card (NIC)**, which connects the device to the network.
+
+Under normal operation, the NIC:
+1. Receives network traffic
+2. Reads destination information
+3. Checks whether the packet contains the device's MAC address
+4. Accepts matching packets
+5. Passes the packet to the operating system or application
+
+## Promiscuous Mode
+
+A NIC can be configured to operate in **promiscuous mode**. In this mode, it accepts network traffic even when packets are not addressed to that device.
+
+This can be useful for legitimate troubleshooting, but malicious actors may abuse it with tools such as **Wireshark** to capture traffic and inspect:
+
+- IP addresses
+- MAC addresses
+- Network protocols
+- Authentication information
+- Unencrypted data
+- User activity
+
+## Packet Sniffing Flow
+
+```text
+Network Traffic
+      |
+      v
+Network Interface Card
+      |
+      +-------------------------+
+      |                         |
+ Normal Mode              Promiscuous Mode
+      |                         |
+Only packets             Captures additional
+for device               network traffic
+      |                         |
+      v                         v
+Normal processing       Packet inspection
+                              |
+                              v
+                     Potential information
+                         disclosure
+```
+
+# IP Spoofing
+
+After capturing traffic, a malicious actor may impersonate an authorized system.
+
+**IP spoofing** involves modifying the source IP information in a packet so it appears to come from another device.
+
+Information gathered through packet sniffing may include:
+- IP addresses
+- MAC addresses
+- Network configuration information
+
+## Firewall Protection Against IP Spoofing
+
+Firewalls can help reduce IP spoofing by rejecting:
+- Unauthorized IP packets
+- Invalid source addresses
+- Unexpected traffic
+- Suspicious packet patterns
+
+# On-Path Attack
+
+An **on-path attack** occurs when a malicious actor intercepts communication between two trusted devices or servers.
+
+```text
+Device A
+   |
+   v
+Attacker
+   |
+   v
+Device B
+```
+
+The attacker may:
+- Observe communications
+- Capture sensitive information
+- Modify transmitted data
+- Redirect traffic
+- Impersonate one of the communicating systems
+
+An on-path attack may also be called a **meddler-in-the-middle attack**.
+
+## Information at Risk
+
+Intercepted communication may contain:
+- Usernames
+- Passwords
+- Authentication information
+- Session information
+- Personal information
+- Network requests
+- DNS queries
+
+## DNS Manipulation in an On-Path Attack
+
+DNS translates domain names into IP addresses.
+
+```text
+User
+ |
+ | Request: example.com
+ v
+DNS Server
+ |
+ | Response: 192.0.2.20
+ v
+User
+```
+
+During an on-path attack, a malicious actor may intercept the DNS lookup and attempt to provide a fraudulent DNS response that redirects the user to a malicious IP address.
+
+## Protection Against On-Path Attacks
+
+A major defense is **encrypting data in transit**, for example with **Transport Layer Security (TLS)**.
+
+# Smurf Attack
+
+A **smurf attack** is a network attack involving spoofed IP information and large amounts of ICMP traffic.
+
+The attacker uses the victim's IP address and sends packets to a network broadcast address.
+
+```text
+                    Attacker
+                       |
+                       | ICMP request
+                       | Spoofed source IP
+                       v
+               Broadcast Address
+                /      |      \
+               /       |       \
+              v        v        v
+          Device 1  Device 2  Device 3
+              \        |        /
+               \       |       /
+                \      |      /
+                 v     v     v
+                    Victim
+```
+
+Multiple systems may respond to the spoofed address, overwhelming the target.
+
+## ICMP and Smurf Attacks
+
+**Internet Control Message Protocol (ICMP)** is commonly used for diagnostics such as `ping`.
+
+During a smurf attack, excessive ICMP responses can cause:
+- Network congestion
+- Resource exhaustion
+- Slow performance
+- Service interruption
+- Server unavailability
+
+## Protecting Against Smurf Attacks
+
+Useful controls include:
+- Advanced firewalls
+- Next-generation firewalls
+- Traffic monitoring
+- Network anomaly detection
+- ICMP filtering
+- Broadcast traffic controls
+
+# Denial-of-Service Attack
+
+A **Denial-of-Service (DoS) attack** attempts to prevent a system from performing legitimate activities or responding to legitimate traffic.
+
+```text
+Attacker
+   |
+   | Large volume of traffic
+   v
+Target Server
+   |
+   v
+Resources consumed
+   |
+   v
+Performance degradation
+   |
+   v
+Legitimate users denied access
+```
+
+A DoS attack may cause:
+- Slow response times
+- Connection failures
+- Service disruption
+- Website unavailability
+- Server resource exhaustion
+- Network congestion
+
+The primary security property affected is **Availability**.
+
+# Relationship Between the Attacks
+
+```text
+Packet Sniffing
+      |
+      v
+Information Gathering
+      |
+      v
+IP / MAC Information Obtained
+      |
+      v
+IP Spoofing
+      |
+      +-------------------+
+      |                   |
+      v                   v
+On-Path Attack       Smurf Attack
+      |                   |
+      v                   v
+Data interception    ICMP traffic flood
+      |                   |
+      v                   v
+Credential / Data       DoS
+Exposure             Service Disruption
+```
+
+# Comparison Table
+
+| Attack / Technique | Main Purpose | Typical Method | Primary Impact |
+|---|---|---|---|
+| **Packet Sniffing** | Capture network traffic | Packet analysis tools | Information exposure |
+| **Active Packet Sniffing** | Capture or manipulate traffic | Interaction with network traffic | Confidentiality / Integrity |
+| **Passive Packet Sniffing** | Observe traffic | Monitoring network packets | Confidentiality |
+| **IP Spoofing** | Impersonate another system | Fake source IP address | Authentication / Trust |
+| **On-Path Attack** | Intercept trusted communication | Position attacker between systems | Confidentiality / Integrity |
+| **Smurf Attack** | Overwhelm target with traffic | Spoofed IP + ICMP broadcast | Availability |
+| **DoS Attack** | Make a service unavailable | Resource or traffic exhaustion | Availability |
+
+# Security Controls
+
+## Encryption
+Use:
+- TLS
+- HTTPS
+- VPN technologies
+
+## Firewalls
+Firewalls can:
+- Block suspicious traffic
+- Restrict unauthorized IP addresses
+- Filter packets
+- Apply ingress and egress rules
+- Detect abnormal traffic patterns
+
+## Network Monitoring
+Monitor:
+- Unusual traffic volumes
+- Unexpected source addresses
+- Large numbers of ICMP packets
+- Abnormal broadcast traffic
+- Suspicious connection patterns
+
+## Network Segmentation
+
+```text
+Internet
+   |
+Firewall
+   |
+   +-------------+
+   |             |
+User Network   Server Network
+   |             |
+   +-------------+
+          |
+      Restricted
+      Communication
+```
+
+## Defense in Depth
+
+Use multiple security layers:
+
+```text
+Internet
+   |
+   v
+Firewall
+   |
+   v
+IDS / IPS
+   |
+   v
+Network Segmentation
+   |
+   v
+Encryption
+   |
+   v
+Endpoint Security
+   |
+   v
+Monitoring & Logging
+```
+
+# Key Takeaways
+
+1. Packet sniffing captures and inspects network traffic.
+2. Promiscuous mode allows a NIC to accept traffic not specifically addressed to it.
+3. Packet sniffing may expose IP addresses, MAC addresses, and sensitive information.
+4. IP spoofing allows an attacker to impersonate another system's IP address.
+5. On-path attacks intercept communication between trusted systems.
+6. TLS encryption is an important defense against interception of data in transit.
+7. Smurf attacks combine IP spoofing, ICMP traffic, and DoS techniques.
+8. DoS attacks attempt to make services unavailable.
+9. Firewalls and network monitoring can help identify suspicious traffic.
+10. Defense in depth uses multiple security controls rather than relying on a single protection mechanism.
+
+# Skills Demonstrated
+
+- Packet sniffing
+- Network traffic analysis
+- Wireshark
+- Network Interface Cards
+- Promiscuous mode
+- IP spoofing
+- On-path attacks
+- DNS interception
+- ICMP
+- Smurf attacks
+- Denial-of-Service attacks
+- Firewall security
+- Encryption
+- TLS
+- Network monitoring
+- Defense in depth
+
+## Keywords
+
+`Cybersecurity` `Network Security` `Packet Sniffing` `Wireshark` `IP Spoofing` `On-Path Attack` `Smurf Attack` `DoS` `ICMP` `DNS` `TLS` `Firewall` `Promiscuous Mode` `Network Monitoring` `Defense in Depth`
+
+
+
+
